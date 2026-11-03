@@ -1,0 +1,11 @@
+@model DeleteUserViewModel
+@{ ViewData["Title"] = "Delete User"; }
+<div class="form-page"><div class="form-card">
+    <h1>Delete user</h1>
+    <p>Are you sure you want to delete <strong>@Model.Username</strong> (@Model.Email)?</p>
+    <div class="alert alert-warning">This also deletes the user's submissions, XP-related progress and earned badges. This cannot be undone.</div>
+    <form asp-action="DeleteUser" asp-route-id="@Model.Id" method="post">
+        <button class="btn btn-danger" type="submit">Delete user</button>
+        <a class="btn btn-outline-secondary" asp-action="Users">Cancel</a>
+    </form>
+</div></div>

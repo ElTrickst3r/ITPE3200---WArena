@@ -1,0 +1,37 @@
+@model DashboardViewModel
+@{ ViewData["Title"] = "Dashboard"; }
+<section class="hero-panel">
+    <div>
+        <span class="eyebrow">WEB APPLICATIONS, GAMIFIED</span>
+        <h1>Practice. Progress. Compete.</h1>
+        <p>Work through individual questions or complete a full challenge set. Earn XP, build a streak and collect badges as you improve.</p>
+        @if (User.Identity?.IsAuthenticated != true)
+        {
+            <div class="d-flex gap-2 flex-wrap"><a class="btn btn-light btn-lg" asp-controller="Account" asp-action="Register">Get started</a><a class="btn btn-outline-light btn-lg" asp-controller="Account" asp-action="Login">Log in</a></div>
+        }
+    </div>
+</section>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <section class="stat-grid mt-4">
+        <div class="stat-card"><strong>@Model.TotalXp</strong><span>XP</span></div>
+        <div class="stat-card"><strong>@Model.CompletedQuestions</strong><span>Completed questions</span></div>
+        <div class="stat-card"><strong>@Model.Accuracy%</strong><span>Accuracy</span></div>
+        <div class="stat-card"><strong>🔥 @Model.CurrentStreak</strong><span>Day streak</span></div>
+    </section>
+}
+
+<div class="section-heading mt-5"><div><h2>Challenge sets</h2><p>Grouped questions you can complete at your own pace.</p></div>@if(User.Identity?.IsAuthenticated == true){<a class="btn btn-outline-primary" asp-controller="ChallengeSets" asp-action="Index">Browse all</a>}</div>
+<div class="row g-4">
+@foreach (var set in Model.ChallengeSets)
+{
+    <div class="col-md-6 col-xl-4"><article class="content-card h-100"><span class="pill">@set.ChallengeSetQuestions.Count questions</span><h3>@set.Name</h3><p>@set.Description</p>@if(User.Identity?.IsAuthenticated == true){<a class="btn btn-primary" asp-controller="ChallengeSets" asp-action="Details" asp-route-id="@set.Id">Open set</a>}else{<span class="text-muted small">Log in to play</span>}</article></div>
+}
+</div>
+
+@if (User.Identity?.IsAuthenticated == true && Model.RecentAchievements.Any())
+{
+    <div class="section-heading mt-5"><div><h2>Recent badges</h2><p>Your latest achievements.</p></div><a class="btn btn-outline-primary" asp-controller="Achievements" asp-action="Index">View all</a></div>
+    <div class="badge-grid">@foreach(var earned in Model.RecentAchievements){<div class="achievement-card"><span class="achievement-icon">@earned.Achievement?.Icon</span><div><strong>@earned.Achievement?.Name</strong><p>@earned.Achievement?.Description</p></div></div>}</div>
+}

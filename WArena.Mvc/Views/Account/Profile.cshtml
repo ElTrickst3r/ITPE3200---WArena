@@ -1,0 +1,28 @@
+@model ProfileViewModel
+@{ ViewData["Title"] = "Profile"; }
+<div class="section-heading"><div><h1>My profile</h1><p>Change your username or password.</p></div></div>
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="form-card mt-0">
+            <h2 class="h4">Username</h2>
+            <p class="text-muted">Usernames must be unique. Your login email stays the same.</p>
+            <form asp-action="UpdateUsername" method="post">
+                <div class="mb-3"><label class="form-label">Email</label><input class="form-control" value="@Model.Email" disabled /></div>
+                <div class="mb-3"><label class="form-label" for="Username">Username</label><input class="form-control" id="Username" name="Username" value="@Model.Username" required minlength="3" maxlength="30" pattern="[A-Za-z0-9._-]+" autocomplete="username" /></div>
+                <button class="btn btn-primary" type="submit">Save username</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="form-card mt-0">
+            <h2 class="h4">Password</h2>
+            <p class="text-muted">Enter your current password before choosing a new one.</p>
+            <form asp-action="ChangePassword" method="post">
+                <div class="mb-3"><label class="form-label" for="CurrentPassword">Current password</label><input class="form-control" id="CurrentPassword" name="CurrentPassword" type="password" required autocomplete="current-password" /></div>
+                <div class="mb-3"><label class="form-label" for="NewPassword">New password</label><input class="form-control" id="NewPassword" name="NewPassword" type="password" required minlength="8" autocomplete="new-password" /></div>
+                <div class="mb-3"><label class="form-label" for="ConfirmNewPassword">Confirm new password</label><input class="form-control" id="ConfirmNewPassword" name="ConfirmNewPassword" type="password" required minlength="8" autocomplete="new-password" /></div>
+                <button class="btn btn-primary" type="submit">Change password</button>
+            </form>
+        </div>
+    </div>
+</div>

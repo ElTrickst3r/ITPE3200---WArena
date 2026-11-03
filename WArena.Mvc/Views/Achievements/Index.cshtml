@@ -1,0 +1,4 @@
+@model IReadOnlyList<UserAchievement>
+@{ ViewData["Title"] = "Badges"; }
+<div class="section-heading"><div><h1>Achievement badges</h1><p>Milestones you have unlocked by learning consistently.</p></div></div>
+@if(!Model.Any()){<div class="empty-state"><h2>No badges yet</h2><p>Your first correct answer unlocks the first badge.</p></div>}else{<div class="badge-grid">@foreach(var item in Model){<article class="achievement-card"><span class="achievement-icon">@item.Achievement?.Icon</span><div><h2 class="h5">@item.Achievement?.Name</h2><p>@item.Achievement?.Description</p><small class="text-muted">Earned @(item.EarnedAtUtc.ToLocalTime().ToString("dd.MM.yyyy"))</small></div></article>}</div>}

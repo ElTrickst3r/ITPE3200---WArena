@@ -1,0 +1,4 @@
+@model IReadOnlyList<Category>
+@{ ViewData["Title"] = "Categories"; }
+<div class="section-heading"><div><h1>Categories</h1><p>Organise questions by topic.</p></div><a class="btn btn-success" asp-action="Create">New category</a></div>
+<div class="table-card"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Name</th><th>Description</th><th class="text-end">Actions</th></tr></thead><tbody>@foreach(var item in Model){<tr><td><strong>@item.Name</strong></td><td>@item.Description</td><td class="text-end"><a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@item.Id">Edit</a> <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id">Delete</a></td></tr>}</tbody></table></div></div>

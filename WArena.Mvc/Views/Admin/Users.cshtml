@@ -1,0 +1,28 @@
+@model IReadOnlyList<UserListItemViewModel>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@{ ViewData["Title"] = "Users"; var currentUserId = UserManager.GetUserId(User); }
+<div class="section-heading"><div><h1>User administration</h1><p>Admins can manage usernames, passwords and roles, or delete accounts.</p></div></div>
+<div class="table-card"><div class="table-responsive"><table class="table align-middle mb-0">
+<thead><tr><th>Username</th><th>XP</th><th>Role</th><th class="text-end">Actions</th></tr></thead>
+<tbody>
+@foreach (var user in Model)
+{
+    <tr>
+        <td><strong>@user.Username</strong><div class="small text-muted">@user.Email</div></td>
+        <td>@user.TotalXp</td>
+        <td><span class="badge text-bg-secondary">@user.Role</span></td>
+        <td class="text-end">
+            @if (user.Id == currentUserId)
+            {
+                <a class="btn btn-sm btn-outline-primary" asp-controller="Account" asp-action="Profile">My profile</a>
+            }
+            else
+            {
+                <a class="btn btn-sm btn-outline-primary" asp-action="EditUser" asp-route-id="@user.Id">Edit</a>
+                <a class="btn btn-sm btn-outline-danger" asp-action="DeleteUser" asp-route-id="@user.Id">Delete</a>
+            }
+        </td>
+    </tr>
+}
+</tbody></table></div></div>

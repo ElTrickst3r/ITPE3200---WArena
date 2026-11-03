@@ -1,0 +1,3 @@
+@model Category
+@{ ViewData["Title"] = "Delete category"; }
+<div class="form-card"><h1>Delete category</h1><p>Delete <strong>@Model.Name</strong>?</p><p class="text-muted">Categories that are used by questions cannot be deleted.</p><form asp-action="Delete" method="post"><input type="hidden" name="id" value="@Model.Id" /><button class="btn btn-danger" type="submit">Delete</button> <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a></form></div>

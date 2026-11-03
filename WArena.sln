@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WArena.Mvc", "WArena.Mvc\WArena.Mvc.csproj", "{5BB5BC7A-D612-4893-87A6-F4A21E640A0F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WArena.Api", "WArena.Api\WArena.Api.csproj", "{E2AA7199-A713-4B06-B0A2-5B9EB4BC7496}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WArena.Mvc.Tests", "WArena.Mvc.Tests\WArena.Mvc.Tests.csproj", "{423E7680-3690-4EAA-9A4B-D0631FC22B1F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5BB5BC7A-D612-4893-87A6-F4A21E640A0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BB5BC7A-D612-4893-87A6-F4A21E640A0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BB5BC7A-D612-4893-87A6-F4A21E640A0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BB5BC7A-D612-4893-87A6-F4A21E640A0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2AA7199-A713-4B06-B0A2-5B9EB4BC7496}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2AA7199-A713-4B06-B0A2-5B9EB4BC7496}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2AA7199-A713-4B06-B0A2-5B9EB4BC7496}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2AA7199-A713-4B06-B0A2-5B9EB4BC7496}.Release|Any CPU.Build.0 = Release|Any CPU
+		{423E7680-3690-4EAA-9A4B-D0631FC22B1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{423E7680-3690-4EAA-9A4B-D0631FC22B1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{423E7680-3690-4EAA-9A4B-D0631FC22B1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{423E7680-3690-4EAA-9A4B-D0631FC22B1F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

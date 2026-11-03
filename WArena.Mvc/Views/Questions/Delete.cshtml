@@ -1,0 +1,3 @@
+@model Question
+@{ ViewData["Title"] = "Delete question"; }
+<div class="form-card"><h1>Delete question</h1><span class="pill">@Model.Category?.Name</span><h2 class="h4 mt-3">@Model.Title</h2><p>@Model.Prompt</p><div class="alert alert-warning">Deleting this question also removes it from any challenge sets that contain it.</div><form asp-action="Delete" method="post"><input type="hidden" name="id" value="@Model.Id" /><button class="btn btn-danger" type="submit">Delete</button> <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a></form></div>

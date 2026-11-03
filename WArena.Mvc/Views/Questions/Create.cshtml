@@ -1,0 +1,13 @@
+@model QuestionFormViewModel
+@{ ViewData["Title"] = "Create question"; }
+<partial name="_QuestionForm" model="Model" />
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const type = document.getElementById('questionType');
+        const options = document.getElementById('choiceOptions');
+        function toggleOptions() { options.style.display = type.value === '1' ? 'block' : 'none'; }
+        type.addEventListener('change', toggleOptions);
+        toggleOptions();
+    </script>
+}

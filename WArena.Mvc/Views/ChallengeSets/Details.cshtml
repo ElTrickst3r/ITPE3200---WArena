@@ -1,0 +1,7 @@
+@model ChallengeSetDetailsViewModel
+@{ ViewData["Title"] = Model.ChallengeSet.Name; var ordered = Model.ChallengeSet.ChallengeSetQuestions.OrderBy(x => x.Order).ToList(); }
+<div class="set-hero"><div><span class="eyebrow">CHALLENGE SET</span><h1>@Model.ChallengeSet.Name</h1><p>@Model.ChallengeSet.Description</p></div><div class="progress-box"><strong>@Model.CompletedQuestions / @Model.TotalQuestions</strong><span>questions completed</span></div></div>
+@if(ordered.Any()){
+    <div class="question-list mt-4">@for(var i=0;i<ordered.Count;i++){var link=ordered[i];<div class="question-row"><div class="number">@(i+1)</div><div class="flex-grow-1"><strong>@link.Question?.Title</strong><div class="text-muted small">@link.Question?.Category?.Name · @link.Question?.Difficulty · @link.Question?.Points XP</div></div><a class="btn btn-sm btn-outline-primary" asp-controller="Play" asp-action="Question" asp-route-id="@link.QuestionId" asp-route-setId="@Model.ChallengeSet.Id" asp-route-index="@i">Practice</a></div>}</div>
+    <a class="btn btn-primary btn-lg mt-4" asp-controller="Play" asp-action="Question" asp-route-id="@ordered[0].QuestionId" asp-route-setId="@Model.ChallengeSet.Id" asp-route-index="0">Start from question 1</a>
+}else{<div class="empty-state">This set has no questions yet.</div>}

@@ -1,0 +1,4 @@
+@model IReadOnlyList<Submission>
+@{ ViewData["Title"] = "History"; }
+<div class="section-heading"><div><h1>Submission history</h1><p>Your previous attempts and points.</p></div></div>
+@if(!Model.Any()){<div class="empty-state"><h2>No submissions yet</h2><p>Complete a question to see it here.</p></div>}else{<div class="table-card"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Question</th><th>Category</th><th>Answer</th><th>Result</th><th>XP</th><th>Date</th></tr></thead><tbody>@foreach(var s in Model){<tr><td>@s.Question?.Title</td><td>@s.Question?.Category?.Name</td><td>@s.Answer</td><td>@if(s.IsCorrect){<span class="badge text-bg-success">Correct</span>}else{<span class="badge text-bg-danger">Incorrect</span>}</td><td>@s.PointsEarned</td><td>@(s.SubmittedAtUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm:ss"))</td></tr>}</tbody></table></div></div>}
