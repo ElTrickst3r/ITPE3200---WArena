@@ -59,6 +59,9 @@ public class AdminController(
             if (admins.Count <= 1) return BadRequest(new { message = "The last admin cannot be changed to another role." });
         }
 
+        // Alt under skjer i én transaksjon. Returnerer metoden før CommitAsync, rulles alle endringer tilbake.
+        await using var transaction = await db.Database.BeginTransactionAsync();
+
         var nameResult = await users.SetUserNameAsync(user, username);
         if (!nameResult.Succeeded) return BadRequest(new { errors = nameResult.Errors.Select(x => x.Description) });
         user.DisplayName = username;
@@ -67,8 +70,13 @@ public class AdminController(
 
         if (!currentRoles.Contains(dto.Role))
         {
-            if (currentRoles.Count > 0) await users.RemoveFromRolesAsync(user, currentRoles);
-            await users.AddToRoleAsync(user, dto.Role);
+            if (currentRoles.Count > 0)
+            {
+                var removeResult = await users.RemoveFromRolesAsync(user, currentRoles);
+                if (!removeResult.Succeeded) return BadRequest(new { errors = removeResult.Errors.Select(x => x.Description) });
+            }
+            var addResult = await users.AddToRoleAsync(user, dto.Role);
+            if (!addResult.Succeeded) return BadRequest(new { errors = addResult.Errors.Select(x => x.Description) });
         }
 
         if (!string.IsNullOrWhiteSpace(dto.NewPassword))
@@ -83,6 +91,7 @@ public class AdminController(
             await users.UpdateSecurityStampAsync(user);
         }
 
+        await transaction.CommitAsync();
         logger.LogInformation("Admin updated user {UserId}", id);
         return NoContent();
     }
@@ -101,6 +110,9 @@ public class AdminController(
             if (admins.Count <= 1) return BadRequest(new { message = "The last admin account cannot be deleted." });
         }
 
+        // Alt under skjer i én transaksjon, slik at læringsdata ikke slettes hvis selve brukeren ikke kan slettes.
+        await using var transaction = await db.Database.BeginTransactionAsync();
+
         // Remove the user's learning data and any rooms they hosted before deleting the Identity account.
         var hostedRoomIds = await db.LiveRooms.Where(x => x.HostUserId == id).Select(x => x.Id).ToListAsync();
         db.LiveAnswers.RemoveRange(db.LiveAnswers.Where(x => x.UserId == id || hostedRoomIds.Contains(x.LiveRoomId)));
@@ -112,6 +124,8 @@ public class AdminController(
 
         var result = await users.DeleteAsync(user);
         if (!result.Succeeded) return BadRequest(new { errors = result.Errors.Select(x => x.Description) });
+
+        await transaction.CommitAsync();
         logger.LogInformation("Admin deleted user {UserId}", id);
         return NoContent();
     }
