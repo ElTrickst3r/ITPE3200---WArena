@@ -7,6 +7,8 @@ namespace WArena.Api.Repositories;
 public interface ICategoryRepository
 {
     Task<List<Category>> GetAllAsync(); Task<Category?> GetAsync(int id); Task AddAsync(Category entity); Task SaveAsync(); Task<bool> DeleteAsync(int id);
+    Task<bool> ExistsAsync(int id);
+    Task<bool> NameExistsAsync(string name, int? excludeId = null);
 }
 public class CategoryRepository(ApplicationDbContext db) : ICategoryRepository
 {
@@ -15,12 +17,19 @@ public class CategoryRepository(ApplicationDbContext db) : ICategoryRepository
     public async Task AddAsync(Category entity){ db.Categories.Add(entity); await db.SaveChangesAsync(); }
     public Task SaveAsync() => db.SaveChangesAsync();
     public async Task<bool> DeleteAsync(int id){ var entity=await GetAsync(id); if(entity is null || entity.Questions.Count>0) return false; db.Remove(entity); await db.SaveChangesAsync(); return true; }
+    public Task<bool> ExistsAsync(int id) => db.Categories.AnyAsync(x => x.Id == id);
+    public Task<bool> NameExistsAsync(string name, int? excludeId = null)
+    {
+        var normalized = name.Trim().ToLower();
+        return db.Categories.AnyAsync(x => x.Name.ToLower() == normalized && x.Id != excludeId);
+    }
 }
 
 public record QuestionFilter(string? Search,int? CategoryId,Difficulty? Difficulty,int? MinPoints,int? MaxPoints);
 public interface IQuestionRepository
 {
     Task<List<Question>> SearchAsync(QuestionFilter filter); Task<List<Question>> GetAllAsync(); Task<Question?> GetAsync(int id); Task AddAsync(Question entity); Task SaveAsync(); Task DeleteAsync(Question entity);
+    Task<bool> AllExistAsync(IEnumerable<int> ids);
 }
 public class QuestionRepository(ApplicationDbContext db) : IQuestionRepository
 {
@@ -30,6 +39,12 @@ public class QuestionRepository(ApplicationDbContext db) : IQuestionRepository
     public async Task AddAsync(Question entity){db.Add(entity);await db.SaveChangesAsync();}
     public Task SaveAsync()=>db.SaveChangesAsync();
     public async Task DeleteAsync(Question entity){db.Remove(entity);await db.SaveChangesAsync();}
+    public async Task<bool> AllExistAsync(IEnumerable<int> ids)
+    {
+        var distinct = ids.Distinct().ToList();
+        var count = await db.Questions.CountAsync(x => distinct.Contains(x.Id));
+        return count == distinct.Count;
+    }
 }
 
 public record SetFilter(string? Search,int? MinQuestions,bool? IsPublished);
