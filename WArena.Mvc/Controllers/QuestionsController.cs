@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -11,6 +12,7 @@ namespace WArena.Mvc.Controllers;
 public class QuestionsController(
     IQuestionRepository questions,
     ICategoryRepository categories,
+    ISubmissionRepository submissions,
     ILogger<QuestionsController> logger) : Controller
 {
     public async Task<IActionResult> Index(string? search, int? categoryId, Difficulty? difficulty, int? minPoints, int? maxPoints)
@@ -25,6 +27,8 @@ public class QuestionsController(
             Questions = await questions.SearchAsync(new QuestionSearchCriteria(search, categoryId, difficulty, minPoints, maxPoints)),
             Categories = await CategoryOptionsAsync(categoryId)
         };
+        model.CompletedQuestionIds = await submissions.GetCompletedQuestionIdsAsync(
+            User.FindFirstValue(ClaimTypes.NameIdentifier)!, model.Questions.Select(x => x.Id).ToArray());
         return View(model);
     }
 
