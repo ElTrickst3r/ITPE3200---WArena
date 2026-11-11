@@ -18,21 +18,19 @@ public class AdminController(
     private static readonly string[] AllowedRoles = ["Admin", "Teacher", "Student"];
 
     [HttpGet("users")]
-    public async Task<ActionResult> GetUsers()
+    public async Task<ActionResult<IEnumerable<AdminUserDto>>> GetUsers()
     {
         var list = await users.Users.OrderBy(x => x.Email).ToListAsync();
-        var result = new List<object>();
+        var result = new List<AdminUserDto>();
         foreach (var user in list)
         {
             var roles = await users.GetRolesAsync(user);
-            result.Add(new
-            {
+            result.Add(new AdminUserDto(
                 user.Id,
-                Username = user.UserName ?? user.DisplayName,
+                user.UserName ?? user.DisplayName,
                 user.Email,
                 user.TotalXp,
-                Role = roles.FirstOrDefault() ?? "Student"
-            });
+                roles.FirstOrDefault() ?? "Student"));
         }
         return Ok(result);
     }
