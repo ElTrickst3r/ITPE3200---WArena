@@ -91,6 +91,7 @@ public class AdminController(
             }
         }
 
+        await using var transaction = await db.Database.BeginTransactionAsync();
         var nameResult = await userManager.SetUserNameAsync(user, username);
         if (!nameResult.Succeeded)
         {
@@ -127,6 +128,7 @@ public class AdminController(
             await userManager.UpdateSecurityStampAsync(user);
         }
 
+        await transaction.CommitAsync();
         logger.LogInformation("Admin updated user {UserId}", user.Id);
         TempData["Message"] = "User updated.";
         return RedirectToAction(nameof(Users));

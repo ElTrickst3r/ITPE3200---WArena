@@ -4,7 +4,9 @@ namespace WArena.Mvc.Models;
 
 public enum QuestionType
 {
+    [Display(Name = "Short answer")]
     ShortAnswer = 0,
+    [Display(Name = "Multiple choice")]
     MultipleChoice = 1
 }
 

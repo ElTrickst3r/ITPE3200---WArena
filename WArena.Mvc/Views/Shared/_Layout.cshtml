@@ -24,8 +24,8 @@
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Questions</a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" asp-controller="Questions" asp-action="Index">Singles</a></li>
-                                    <li><a class="dropdown-item" asp-controller="ChallengeSets" asp-action="Index">Sets</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Questions" asp-action="Index">Individual questions</a></li>
+                                    <li><a class="dropdown-item" asp-controller="ChallengeSets" asp-action="Index">Challenge sets</a></li>
                                 </ul>
                             </li>
                             @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))

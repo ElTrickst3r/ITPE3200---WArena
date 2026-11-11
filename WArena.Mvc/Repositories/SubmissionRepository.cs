@@ -9,11 +9,23 @@ public class SubmissionRepository(ApplicationDbContext context) : ISubmissionRep
     public Task<bool> HasCorrectSubmissionAsync(string userId, int questionId) =>
         context.Submissions.AnyAsync(x => x.UserId == userId && x.QuestionId == questionId && x.IsCorrect);
 
+    public async Task<HashSet<int>> GetCompletedQuestionIdsAsync(string userId, IReadOnlyCollection<int> questionIds)
+    {
+        if (questionIds.Count == 0) return new HashSet<int>();
+
+        return (await context.Submissions
+            .Where(x => x.UserId == userId && x.IsCorrect && questionIds.Contains(x.QuestionId))
+            .Select(x => x.QuestionId).Distinct().ToListAsync()).ToHashSet();
+    }
+
     public async Task AddAsync(Submission submission)
     {
         context.Submissions.Add(submission);
         await context.SaveChangesAsync();
     }
+
+    public Task<Submission?> GetByIdForUserAsync(int id, string userId) =>
+        context.Submissions.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
 
     public async Task<IReadOnlyList<Submission>> GetForUserAsync(string userId) =>
         await context.Submissions.Include(x => x.Question).ThenInclude(x => x!.Category)

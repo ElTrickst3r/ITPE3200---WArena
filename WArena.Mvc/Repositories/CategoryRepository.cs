@@ -12,8 +12,13 @@ public class CategoryRepository(ApplicationDbContext context) : ICategoryReposit
     public Task<Category?> GetByIdAsync(int id) =>
         context.Categories.FirstOrDefaultAsync(x => x.Id == id);
 
-    public Task<bool> NameExistsAsync(string name, int? ignoreId = null) =>
-        context.Categories.AnyAsync(x => x.Name.ToLower() == name.ToLower() && (!ignoreId.HasValue || x.Id != ignoreId.Value));
+    public async Task<bool> NameExistsAsync(string name, int? ignoreId = null)
+    {
+        var names = await context.Categories
+            .Where(x => !ignoreId.HasValue || x.Id != ignoreId.Value)
+            .Select(x => x.Name).ToListAsync();
+        return names.Any(x => string.Equals(x.Trim(), name.Trim(), StringComparison.OrdinalIgnoreCase));
+    }
 
     public async Task AddAsync(Category category)
     {

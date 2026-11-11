@@ -24,6 +24,13 @@ public class ChallengeSetsController(
             IsPublished = isPublished,
             ChallengeSets = await sets.SearchAsync(new ChallengeSetSearchCriteria(search, minQuestions, isPublished), includeUnpublished: canManage)
         };
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (User.Identity?.IsAuthenticated == true && userId is not null)
+        {
+            var questionIds = model.ChallengeSets.SelectMany(x => x.ChallengeSetQuestions)
+                .Select(x => x.QuestionId).Distinct().ToArray();
+            model.CompletedQuestionIds = await submissions.GetCompletedQuestionIdsAsync(userId, questionIds);
+        }
         return View(model);
     }
 
@@ -32,11 +39,13 @@ public class ChallengeSetsController(
         var set = await sets.GetByIdAsync(id);
         if (set is null || (!set.IsPublished && !User.IsInRole("Admin") && !User.IsInRole("Teacher"))) return NotFound();
 
-        var completed = await submissions.CountCompletedQuestionsForSetAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!, id);
+        var completed = await submissions.GetCompletedQuestionIdsAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!,
+            set.ChallengeSetQuestions.Select(x => x.QuestionId).ToArray());
         return View(new ChallengeSetDetailsViewModel
         {
             ChallengeSet = set,
-            CompletedQuestions = completed,
+            CompletedQuestionIds = completed,
+            CompletedQuestions = completed.Count,
             TotalQuestions = set.ChallengeSetQuestions.Count
         });
     }

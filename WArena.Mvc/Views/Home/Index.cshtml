@@ -26,7 +26,7 @@
 <div class="row g-4">
 @foreach (var set in Model.ChallengeSets)
 {
-    <div class="col-md-6 col-xl-4"><article class="content-card h-100"><span class="pill">@set.ChallengeSetQuestions.Count questions</span><h3>@set.Name</h3><p>@set.Description</p>@if(User.Identity?.IsAuthenticated == true){<a class="btn btn-primary" asp-controller="ChallengeSets" asp-action="Details" asp-route-id="@set.Id">Open set</a>}else{<span class="text-muted small">Log in to play</span>}</article></div>
+    <div class="col-md-6 col-xl-4"><article class="content-card h-100"><span class="pill">@set.ChallengeSetQuestions.Count @(set.ChallengeSetQuestions.Count == 1 ? "question" : "questions")</span><h3>@set.Name</h3><p>@set.Description</p>@if(User.Identity?.IsAuthenticated == true){<a class="btn btn-primary" asp-controller="ChallengeSets" asp-action="Details" asp-route-id="@set.Id">Open set</a>}else{<span class="text-muted small">Log in to play</span>}</article></div>
 }
 </div>
 

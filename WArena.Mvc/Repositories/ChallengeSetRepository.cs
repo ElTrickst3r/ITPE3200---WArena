@@ -43,8 +43,12 @@ public class ChallengeSetRepository(ApplicationDbContext context) : IChallengeSe
 
     public async Task UpdateAsync(ChallengeSet set, IReadOnlyList<int> questionIds)
     {
-        var orderedIds = questionIds.Distinct().ToList();
         var existingByQuestionId = set.ChallengeSetQuestions.ToDictionary(x => x.QuestionId);
+        // Keep the saved order of retained questions, then append new selections.
+        var orderedIds = set.ChallengeSetQuestions.OrderBy(x => x.Order)
+            .Where(x => questionIds.Contains(x.QuestionId)).Select(x => x.QuestionId)
+            .Concat(questionIds.Where(id => !existingByQuestionId.ContainsKey(id)))
+            .Distinct().ToList();
 
         foreach (var link in set.ChallengeSetQuestions
                      .Where(x => !orderedIds.Contains(x.QuestionId))

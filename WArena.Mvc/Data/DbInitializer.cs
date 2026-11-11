@@ -27,7 +27,6 @@ public static class DbInitializer
         for (var i = 1; i <= 5; i++)
             await EnsureUserAsync(userManager, $"student{i}@warena.local", $"student{i}", "Student123!", "Student");
 
-        await RemoveOldSeedStudentsAsync(context, userManager);
 
         var categories = await EnsureCategoriesAsync(context);
 
@@ -35,12 +34,12 @@ public static class DbInitializer
         await EnsureSeedQuestionsAsync(context, categories["CSS"], CssQuestions());
         await EnsureSeedQuestionsAsync(context, categories["ASP.NET Core"], AspNetQuestions());
         await EnsureSeedQuestionsAsync(context, categories["JavaScript"], JavaScriptQuestions());
-        await EnsureSeedQuestionsAsync(context, categories["Div1"], Div1Questions());
-        await EnsureSeedQuestionsAsync(context, categories["Div2"], Div2Questions());
+        await EnsureSeedQuestionsAsync(context, categories["Practical Web Development"], Div1Questions());
+        await EnsureSeedQuestionsAsync(context, categories["Web Development Concepts"], Div2Questions());
 
         await UpdateLegacyQuestionPromptAsync(
             context,
-            categories["Div2"],
+            categories["Web Development Concepts"],
             "Web application",
             "According to the lecture material, what client application is normally used to access a web application?",
             "What client application is normally used to access a web application?");
@@ -53,25 +52,30 @@ public static class DbInitializer
 
             AddSet(context, "HTML Basics", "Practice ten core HTML concepts.", htmlQuestions);
             AddSet(context, "CSS Fundamentals", "Practice ten essential CSS concepts.", cssQuestions);
-            AddSet(context, "Web Applications Mix", "A mixed set for general course practice.", webQuestions);
+            AddSet(context, "ASP.NET Core & MVC", "A mixed set for general course practice.", webQuestions);
             await context.SaveChangesAsync();
         }
 
+        var legacyWebSets = await context.ChallengeSets.Where(x => x.Name == "Web Applications Mix").ToListAsync();
+        foreach (var set in legacyWebSets)
+            set.Name = "ASP.NET Core & MVC";
+        if (legacyWebSets.Count > 0) await context.SaveChangesAsync();
+
         var div1QuestionIds = await context.Questions
-            .Where(x => x.Category!.Name == "Div1")
+            .Where(x => x.Category!.Name == "Practical Web Development")
             .OrderBy(x => x.Id)
             .Take(10)
             .Select(x => x.Id)
             .ToListAsync();
         var div2QuestionIds = await context.Questions
-            .Where(x => x.Category!.Name == "Div2")
+            .Where(x => x.Category!.Name == "Web Development Concepts")
             .OrderBy(x => x.Id)
             .Take(10)
             .Select(x => x.Id)
             .ToListAsync();
 
-        await EnsureChallengeSetAsync(context, "Div1", "Div1", div1QuestionIds);
-        await EnsureChallengeSetAsync(context, "Div2", "Div2", div2QuestionIds);
+        await EnsureChallengeSetAsync(context, "Practical Web Development", "Practical Web Development", div1QuestionIds, "Div1");
+        await EnsureChallengeSetAsync(context, "Web Development Concepts", "Web Development Concepts", div2QuestionIds, "Div2");
 
         if (!await context.Achievements.AnyAsync())
         {
@@ -92,18 +96,36 @@ public static class DbInitializer
             ("CSS", "Styling, layout and responsive design."),
             ("ASP.NET Core", "MVC, APIs, routing and server-side concepts."),
             ("JavaScript", "Browser-side programming and interaction."),
-            ("Div1", "Div1"),
-            ("Div2", "Div2")
+            ("Practical Web Development", "Practical Web Development"),
+            ("Web Development Concepts", "Web Development Concepts")
         };
 
-        var existing = (await context.Categories.ToListAsync())
-            .ToDictionary(x => x.Name, StringComparer.OrdinalIgnoreCase);
+        var groups = (await context.Categories.OrderBy(x => x.Id).ToListAsync())
+            .GroupBy(x => x.Name.Trim(), StringComparer.OrdinalIgnoreCase).ToList();
+        var duplicateNames = groups.Where(x => x.Count() > 1)
+            .Select(x => x.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        // Use the oldest row only for seed lookups; leave duplicate rows and their links intact.
+        var existing = groups.ToDictionary(x => x.Key, x => x.First(), StringComparer.OrdinalIgnoreCase);
+
+        // Rename legacy rows in place so question category IDs remain unchanged.
+        foreach (var (oldName, newName) in new[]
+        {
+            ("Div1", "Practical Web Development"),
+            ("Div2", "Web Development Concepts")
+        })
+        {
+            if (!duplicateNames.Contains(oldName) && !existing.ContainsKey(newName) && existing.Remove(oldName, out var category))
+            {
+                category.Name = newName;
+                existing[newName] = category;
+            }
+        }
 
         foreach (var (name, description) in definitions)
         {
             if (existing.TryGetValue(name, out var category))
             {
-                if (!string.Equals(category.Description, description, StringComparison.Ordinal))
+                if (!duplicateNames.Contains(name) && !string.Equals(category.Description, description, StringComparison.Ordinal))
                     category.Description = description;
                 continue;
             }
@@ -282,8 +304,18 @@ public static class DbInitializer
         ApplicationDbContext context,
         string name,
         string description,
-        IReadOnlyList<int> questionIds)
+        IReadOnlyList<int> questionIds,
+        string legacyName)
     {
+        // Keep existing sets and their question links when updating seeded display text.
+        var legacySets = await context.ChallengeSets.Where(x => x.Name == legacyName).ToListAsync();
+        foreach (var set in legacySets)
+        {
+            set.Name = name;
+            if (set.Description == legacyName) set.Description = description;
+        }
+        if (legacySets.Count > 0) await context.SaveChangesAsync();
+
         if (await context.ChallengeSets.AnyAsync(x => x.Name == name)) return;
 
         AddSet(context, name, description, questionIds);
