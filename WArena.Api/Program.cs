@@ -13,6 +13,8 @@ using WArena.Api.Services;
 
 var builder=WebApplication.CreateBuilder(args);
 builder.Services.AddControllers().AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.AddOpenApi();
+builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddProblemDetails();
 builder.Services.AddSignalR();
 builder.Services.AddDbContext<ApplicationDbContext>(o=>o.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -68,6 +70,8 @@ builder.Services.AddScoped<ITokenService,TokenService>();
 builder.Services.AddScoped<ILiveArenaService,LiveArenaService>();
 
 var app=builder.Build();
+if (app.Environment.IsDevelopment())
+    app.MapOpenApi();
 app.UseExceptionHandler();
 if (!app.Environment.IsDevelopment()) app.UseHttpsRedirection();
 app.UseCors("spa");
