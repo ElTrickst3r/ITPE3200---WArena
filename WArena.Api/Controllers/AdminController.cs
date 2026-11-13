@@ -39,8 +39,16 @@ public class AdminController(
     public async Task<IActionResult> UpdateUser(string id, AdminUpdateUserDto dto)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (id == currentUserId) return BadRequest(new { message = "Use your Profile page to change your own account." });
-        if (!AllowedRoles.Contains(dto.Role)) return BadRequest(new { message = "Invalid role." });
+        if (id == currentUserId)
+        {
+            logger.LogWarning("Admin {AdminId} tried to edit own account via admin endpoint", currentUserId);
+            return BadRequest(new { message = "Use your Profile page to change your own account." });
+        }
+        if (!AllowedRoles.Contains(dto.Role))
+        {
+            logger.LogWarning("Admin update of user {UserId} rejected: invalid role {Role}", id, dto.Role);
+            return BadRequest(new { message = "Invalid role." });
+        }
 
         var user = await users.FindByIdAsync(id);
         if (user is null) return NotFound();
@@ -48,40 +56,47 @@ public class AdminController(
         var username = dto.Username.Trim();
         var duplicate = await users.FindByNameAsync(username);
         if (duplicate is not null && duplicate.Id != user.Id)
+        {
+            logger.LogWarning("Admin update of user {UserId} rejected: username already taken", id);
             return BadRequest(new { message = "That username is already taken." });
+        }
 
         var currentRoles = await users.GetRolesAsync(user);
         if (currentRoles.Contains("Admin") && dto.Role != "Admin")
         {
             var admins = await users.GetUsersInRoleAsync("Admin");
-            if (admins.Count <= 1) return BadRequest(new { message = "The last admin cannot be changed to another role." });
+            if (admins.Count <= 1)
+            {
+                logger.LogWarning("Admin update of user {UserId} rejected: cannot demote the last admin", id);
+                return BadRequest(new { message = "The last admin cannot be changed to another role." });
+            }
         }
 
-        // Alt under skjer i én transaksjon. Returnerer metoden før CommitAsync, rulles alle endringer tilbake.
+        // All changes below run in one transaction. Returning before CommitAsync rolls everything back.
         await using var transaction = await db.Database.BeginTransactionAsync();
 
         var nameResult = await users.SetUserNameAsync(user, username);
-        if (!nameResult.Succeeded) return BadRequest(new { errors = nameResult.Errors.Select(x => x.Description) });
+        if (!nameResult.Succeeded) return RejectUpdate(id, nameResult);
         user.DisplayName = username;
         var updateResult = await users.UpdateAsync(user);
-        if (!updateResult.Succeeded) return BadRequest(new { errors = updateResult.Errors.Select(x => x.Description) });
+        if (!updateResult.Succeeded) return RejectUpdate(id, updateResult);
 
         if (!currentRoles.Contains(dto.Role))
         {
             if (currentRoles.Count > 0)
             {
                 var removeResult = await users.RemoveFromRolesAsync(user, currentRoles);
-                if (!removeResult.Succeeded) return BadRequest(new { errors = removeResult.Errors.Select(x => x.Description) });
+                if (!removeResult.Succeeded) return RejectUpdate(id, removeResult);
             }
             var addResult = await users.AddToRoleAsync(user, dto.Role);
-            if (!addResult.Succeeded) return BadRequest(new { errors = addResult.Errors.Select(x => x.Description) });
+            if (!addResult.Succeeded) return RejectUpdate(id, addResult);
         }
 
         if (!string.IsNullOrWhiteSpace(dto.NewPassword))
         {
             var token = await users.GeneratePasswordResetTokenAsync(user);
             var passwordResult = await users.ResetPasswordAsync(user, token, dto.NewPassword);
-            if (!passwordResult.Succeeded) return BadRequest(new { errors = passwordResult.Errors.Select(x => x.Description) });
+            if (!passwordResult.Succeeded) return RejectUpdate(id, passwordResult);
         }
         else
         {
@@ -90,7 +105,8 @@ public class AdminController(
         }
 
         await transaction.CommitAsync();
-        logger.LogInformation("Admin updated user {UserId}", id);
+        logger.LogInformation("Admin updated user {UserId} (role {Role}, password reset: {PasswordReset})",
+            id, dto.Role, !string.IsNullOrWhiteSpace(dto.NewPassword));
         return NoContent();
     }
 
@@ -98,17 +114,25 @@ public class AdminController(
     public async Task<IActionResult> DeleteUser(string id)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (id == currentUserId) return BadRequest(new { message = "You cannot delete your own account while logged in." });
+        if (id == currentUserId)
+        {
+            logger.LogWarning("Admin {AdminId} tried to delete own account", currentUserId);
+            return BadRequest(new { message = "You cannot delete your own account while logged in." });
+        }
 
         var user = await users.FindByIdAsync(id);
         if (user is null) return NotFound();
         if (await users.IsInRoleAsync(user, "Admin"))
         {
             var admins = await users.GetUsersInRoleAsync("Admin");
-            if (admins.Count <= 1) return BadRequest(new { message = "The last admin account cannot be deleted." });
+            if (admins.Count <= 1)
+            {
+                logger.LogWarning("Admin deletion of user {UserId} rejected: cannot delete the last admin", id);
+                return BadRequest(new { message = "The last admin account cannot be deleted." });
+            }
         }
 
-        // Alt under skjer i én transaksjon, slik at læringsdata ikke slettes hvis selve brukeren ikke kan slettes.
+        // All deletions run in one transaction, so learning data is not removed if the account itself cannot be deleted.
         await using var transaction = await db.Database.BeginTransactionAsync();
 
         // Remove the user's learning data and any rooms they hosted before deleting the Identity account.
@@ -121,10 +145,21 @@ public class AdminController(
         await db.SaveChangesAsync();
 
         var result = await users.DeleteAsync(user);
-        if (!result.Succeeded) return BadRequest(new { errors = result.Errors.Select(x => x.Description) });
+        if (!result.Succeeded)
+        {
+            logger.LogWarning("Admin deletion of user {UserId} failed: {Errors}", id, string.Join("; ", result.Errors.Select(x => x.Code)));
+            return BadRequest(new { errors = result.Errors.Select(x => x.Description) });
+        }
 
         await transaction.CommitAsync();
         logger.LogInformation("Admin deleted user {UserId}", id);
         return NoContent();
+    }
+
+    // Logs a rejected update and returns the Identity errors to the client.
+    private BadRequestObjectResult RejectUpdate(string userId, IdentityResult result)
+    {
+        logger.LogWarning("Admin update of user {UserId} rejected: {Errors}", userId, string.Join("; ", result.Errors.Select(x => x.Code)));
+        return BadRequest(new { errors = result.Errors.Select(x => x.Description) });
     }
 }

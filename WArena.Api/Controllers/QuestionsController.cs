@@ -38,9 +38,15 @@ public class QuestionsController(IQuestionRepository repo, ICategoryRepository c
     public async Task<ActionResult<QuestionDto>> Create(QuestionUpsertDto dto)
     {
         if (!ValidateChoices(dto, out var error))
+        {
+            logger.LogWarning("API question creation rejected: {Reason}", error);
             return BadRequest(new { message = error });
+        }
         if (!await categories.ExistsAsync(dto.CategoryId))
+        {
+            logger.LogWarning("API question creation rejected: category {CategoryId} does not exist", dto.CategoryId);
             return BadRequest(new { message = "Category does not exist." });
+        }
 
         var q = Map(dto);
         await repo.AddAsync(q);
@@ -55,9 +61,15 @@ public class QuestionsController(IQuestionRepository repo, ICategoryRepository c
         var q = await repo.GetAsync(id);
         if (q is null) return NotFound();
         if (!ValidateChoices(dto, out var error))
+        {
+            logger.LogWarning("API question {Id} update rejected: {Reason}", id, error);
             return BadRequest(new { message = error });
+        }
         if (!await categories.ExistsAsync(dto.CategoryId))
+        {
+            logger.LogWarning("API question {Id} update rejected: category {CategoryId} does not exist", id, dto.CategoryId);
             return BadRequest(new { message = "Category does not exist." });
+        }
 
         q.Title = dto.Title.Trim();
         q.Prompt = dto.Prompt.Trim();
@@ -71,6 +83,7 @@ public class QuestionsController(IQuestionRepository repo, ICategoryRepository c
         q.OptionC = dto.OptionC?.Trim();
         q.OptionD = dto.OptionD?.Trim();
         await repo.SaveAsync();
+        logger.LogInformation("API question {Id} updated", id);
         return NoContent();
     }
 
@@ -80,6 +93,7 @@ public class QuestionsController(IQuestionRepository repo, ICategoryRepository c
         var q = await repo.GetAsync(id);
         if (q is null) return NotFound();
         await repo.DeleteAsync(q);
+        logger.LogInformation("API question {Id} deleted", id);
         return NoContent();
     }
 
