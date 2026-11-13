@@ -17,7 +17,33 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminUserDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminUserDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminUserDto"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -1345,7 +1371,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionManageDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionManageDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionManageDto"
+                }
+              }
+            }
           }
         }
       }
@@ -1408,6 +1451,41 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "AdminUserDto": {
+        "required": [
+          "id",
+          "username",
+          "email",
+          "totalXp",
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "totalXp": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "role": {
+            "type": "string"
           }
         }
       },
@@ -2072,6 +2150,88 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "QuestionManageDto": {
+        "required": [
+          "id",
+          "title",
+          "prompt",
+          "correctAnswer",
+          "type",
+          "difficulty",
+          "points",
+          "categoryId",
+          "optionA",
+          "optionB",
+          "optionC",
+          "optionD"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "title": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "correctAnswer": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/QuestionType"
+          },
+          "difficulty": {
+            "$ref": "#/components/schemas/Difficulty"
+          },
+          "points": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "categoryId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "optionA": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "optionB": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "optionC": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "optionD": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

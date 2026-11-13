@@ -75,7 +75,7 @@ public class ProgressController(
         var user = await users.FindByIdAsync(uid);
         if (user is null) return Unauthorized();
 
-        // Submission, XP og achievements lagres sammen. Returnerer metoden før CommitAsync, rulles alt tilbake.
+        // Submission, XP and achievements are saved together. Returning before CommitAsync rolls everything back.
         await using var transaction = await db.Database.BeginTransactionAsync();
 
         var already = await progress.HasCorrectAsync(uid, questionId);
