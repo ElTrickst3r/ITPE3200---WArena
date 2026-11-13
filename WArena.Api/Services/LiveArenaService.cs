@@ -50,7 +50,7 @@ public class LiveArenaService(
             }
             catch (DbUpdateException)
             {
-                // En forespørsel på samme tid la til brukeren først. Brukeren er med så vi fortsetter.
+                // A concurrent request added the user first. The user is already a participant, so we continue.
             }
         }
         return await live.GetByCodeWithStateAsync(room.Code);
