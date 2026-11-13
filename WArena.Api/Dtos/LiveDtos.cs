@@ -9,7 +9,7 @@ public class CreateLiveRoomDto
 }
 
 public record JoinRoomDto(string? DisplayName = null);
-public record LiveAnswerDto([Required] string Answer, [Range(0, 60000)] int ElapsedMs);
+public record LiveAnswerDto([Required, StringLength(500)] string Answer, [Range(0, 60000)] int ElapsedMs);
 public record LeaderboardRowDto(string UserId, string DisplayName, int Score, int CorrectAnswers, int TotalResponseTimeMs, int Rank, int Lane);
 public record LiveQuestionDto(int Id, string Title, string Prompt, string Type, IReadOnlyList<string> Options, int Index, int Total, int TimeLimitSeconds);
 public record LiveRoomDto(

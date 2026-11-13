@@ -16,5 +16,5 @@ public class QuestionUpsertDto
     [StringLength(250)] public string? OptionD { get; set; }
     [Range(1,int.MaxValue)] public int CategoryId { get; set; }
 }
-public record AnswerRequestDto([Required] string Answer);
+public record AnswerRequestDto([Required, StringLength(500)] string Answer);
 public record AnswerResultDto(bool IsCorrect,int PointsEarned,int TotalXp,int CurrentStreak);
