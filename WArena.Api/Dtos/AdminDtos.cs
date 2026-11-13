@@ -13,3 +13,5 @@ public class AdminUpdateUserDto
     [MinLength(8)]
     public string? NewPassword { get; set; }
 }
+
+public record AdminUserDto(string Id, string Username, string? Email, int TotalXp, string Role);

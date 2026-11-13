@@ -25,11 +25,13 @@ public class QuestionsController(IQuestionRepository repo, ICategoryRepository c
     }
 
     [HttpGet("{id:int}/manage"), Authorize(Roles = "Admin,Teacher")]
-    public async Task<ActionResult> GetForManagement(int id)
+    public async Task<ActionResult<QuestionManageDto>> GetForManagement(int id)
     {
         var q = await repo.GetAsync(id);
         if (q is null) return NotFound();
-        return Ok(new { q.Id, q.Title, q.Prompt, q.CorrectAnswer, q.Type, q.Difficulty, q.Points, q.CategoryId, q.OptionA, q.OptionB, q.OptionC, q.OptionD });
+        return Ok(new QuestionManageDto(
+            q.Id, q.Title, q.Prompt, q.CorrectAnswer, q.Type, q.Difficulty, q.Points,
+            q.CategoryId, q.OptionA, q.OptionB, q.OptionC, q.OptionD));
     }
 
     [HttpPost, Authorize(Roles = "Admin,Teacher")]

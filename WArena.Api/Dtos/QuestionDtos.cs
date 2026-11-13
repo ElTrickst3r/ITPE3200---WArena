@@ -18,3 +18,16 @@ public class QuestionUpsertDto
 }
 public record AnswerRequestDto([Required, StringLength(500)] string Answer);
 public record AnswerResultDto(bool IsCorrect,int PointsEarned,int TotalXp,int CurrentStreak);
+public record QuestionManageDto(
+    int Id,
+    string Title,
+    string Prompt,
+    string CorrectAnswer,
+    QuestionType Type,
+    Difficulty Difficulty,
+    int Points,
+    int CategoryId,
+    string? OptionA,
+    string? OptionB,
+    string? OptionC,
+    string? OptionD);
