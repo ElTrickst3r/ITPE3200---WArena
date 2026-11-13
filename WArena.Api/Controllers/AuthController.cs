@@ -28,7 +28,15 @@ public class AuthController(UserManager<ApplicationUser> users, ITokenService to
         };
         var result = await users.CreateAsync(user, dto.Password);
         if (!result.Succeeded) return BadRequest(new { errors = result.Errors.Select(x => x.Description) });
-        await users.AddToRoleAsync(user, "Student");
+
+        var roleResult = await users.AddToRoleAsync(user, "Student");
+        if (!roleResult.Succeeded)
+        {
+            await users.DeleteAsync(user);
+            logger.LogError("Could not assign Student role to new user {UserId}", user.Id);
+            return Problem(detail: "Registration failed. Please try again.", statusCode: 500);
+        }
+
         logger.LogInformation("SPA user {UserId} registered", user.Id);
         return Ok(await ResponseAsync(user));
     }
@@ -37,8 +45,17 @@ public class AuthController(UserManager<ApplicationUser> users, ITokenService to
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
     {
         var user = await users.FindByEmailAsync(dto.Email);
-        if (user is null || !await users.CheckPasswordAsync(user, dto.Password))
+        if (user is null) return Unauthorized(new { message = "Invalid email or password." });
+        if (await users.IsLockedOutAsync(user))
+            return Unauthorized(new { message = "Account locked. Try again later." });
+
+        if (!await users.CheckPasswordAsync(user, dto.Password))
+        {
+            await users.AccessFailedAsync(user);
             return Unauthorized(new { message = "Invalid email or password." });
+        }
+        await users.ResetAccessFailedCountAsync(user);
+
         logger.LogInformation("SPA user {UserId} logged in", user.Id);
         return Ok(await ResponseAsync(user));
     }

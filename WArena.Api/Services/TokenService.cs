@@ -15,10 +15,10 @@ public class TokenService(IConfiguration configuration) : ITokenService
 {
     public string CreateToken(ApplicationUser user,IEnumerable<string> roles)
     {
-        var key=configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is missing.");
-        var issuer=configuration["Jwt:Issuer"] ?? "WArena.Api";
-        var audience=configuration["Jwt:Audience"] ?? "WArena.Spa";
-        var claims=new List<Claim>
+        var key = configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is missing.");
+        var issuer = configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("Jwt:Issuer is missing.");
+        var audience = configuration["Jwt:Audience"] ?? throw new InvalidOperationException("Jwt:Audience is missing.");
+        var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub,user.Id),
             new(ClaimTypes.NameIdentifier,user.Id),
