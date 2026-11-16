@@ -7,7 +7,12 @@ public record PracticeScoreResult(bool IsCorrect, int PointsEarned);
 public interface IGamificationService
 {
     PracticeScoreResult ScorePracticeAnswer(Question question, string answer, bool alreadyCompleted);
-    int CalculateLiveScore(bool isCorrect, int elapsedMs, int timeLimitSeconds, int maxPoints = 1000, int basePoints = 500);
+    int CalculateLiveScore(
+        bool isCorrect,
+        int elapsedMs,
+        int timeLimitSeconds,
+        int maxPoints = 1000,
+        int basePoints = 500);
     int UpdateStreak(int currentStreak, DateTime? lastActivityUtc, DateTime activityUtc);
 }
 
@@ -28,11 +33,17 @@ public class GamificationService : IGamificationService
 
     private static int CalculateRepeatPracticeXp(int questionPoints)
     {
-        if (questionPoints <= 0) return 0;
+        if (questionPoints <= 0)
+            return 0;
         return Math.Max(1, (int)Math.Round(questionPoints * 0.20, MidpointRounding.AwayFromZero));
     }
 
-    public int CalculateLiveScore(bool isCorrect, int elapsedMs, int timeLimitSeconds, int maxPoints = 1000, int basePoints = 500)
+    public int CalculateLiveScore(
+        bool isCorrect,
+        int elapsedMs,
+        int timeLimitSeconds,
+        int maxPoints = 1000,
+        int basePoints = 500)
     {
         if (!isCorrect || elapsedMs < 0 || timeLimitSeconds <= 0 || maxPoints < basePoints || basePoints < 0)
             return 0;

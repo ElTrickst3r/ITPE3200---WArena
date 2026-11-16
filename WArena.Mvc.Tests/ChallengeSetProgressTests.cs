@@ -44,9 +44,15 @@ public class ChallengeSetProgressTests : IAsyncLifetime
         var completed = model.ChallengeSets.Single(set => set.Id == _completedSet.Id);
         var partial = model.ChallengeSets.Single(set => set.Id == _partialSet.Id);
         var unanswered = model.ChallengeSets.Single(set => set.Id == _unansweredSet.Id);
-        Assert.Equal(2, completed.ChallengeSetQuestions.Count(link => model.CompletedQuestionIds.Contains(link.QuestionId)));
-        Assert.Equal(1, partial.ChallengeSetQuestions.Count(link => model.CompletedQuestionIds.Contains(link.QuestionId)));
-        Assert.Equal(0, unanswered.ChallengeSetQuestions.Count(link => model.CompletedQuestionIds.Contains(link.QuestionId)));
+        Assert.Equal(
+            2,
+            completed.ChallengeSetQuestions.Count(link => model.CompletedQuestionIds.Contains(link.QuestionId)));
+        Assert.Equal(
+            1,
+            partial.ChallengeSetQuestions.Count(link => model.CompletedQuestionIds.Contains(link.QuestionId)));
+        Assert.Equal(
+            0,
+            unanswered.ChallengeSetQuestions.Count(link => model.CompletedQuestionIds.Contains(link.QuestionId)));
         Assert.Empty(model.ChallengeSets.Single(set => set.Id == _emptySet.Id).ChallengeSetQuestions);
         await AssertProgressUnchangedAsync();
     }
@@ -146,7 +152,12 @@ public class ChallengeSetProgressTests : IAsyncLifetime
     private async Task AssertProgressUnchangedAsync()
     {
         Assert.Equal(_historyCount, await _db.Submissions.CountAsync());
-        Assert.Equal(250, await _db.Users.Where(user => user.Id == _user.Id).Select(user => user.TotalXp).SingleAsync());
+        Assert.Equal(
+            250,
+            await _db.Users
+            .Where(user => user.Id == _user.Id)
+            .Select(user => user.TotalXp)
+            .SingleAsync());
     }
 
     private static Submission AnswerFor(ApplicationUser user, Question question, bool correct) => new()
@@ -165,7 +176,8 @@ public class ChallengeSetProgressTests : IAsyncLifetime
             .LogTo(message =>
             {
                 // Count executed SQL commands involving submissions, without a custom interceptor.
-                if (message.Contains("Submissions", StringComparison.Ordinal)) _completionQueries++;
+                if (message.Contains("Submissions", StringComparison.Ordinal))
+                    _completionQueries++;
             }, new[] { RelationalEventId.CommandExecuted })
             .Options);
         await _db.Database.EnsureCreatedAsync();
@@ -173,7 +185,14 @@ public class ChallengeSetProgressTests : IAsyncLifetime
         var otherUser = new ApplicationUser { UserName = "other" };
         var category = new Category { Name = "HTML" };
         _db.Users.AddRange(_user, otherUser);
-        var questions = new[] { _sharedQuestion, _secondCorrectQuestion, _incorrectQuestion, _outsideQuestion, _unansweredQuestion };
+        var questions = new[]
+        {
+            _sharedQuestion,
+            _secondCorrectQuestion,
+            _incorrectQuestion,
+            _outsideQuestion,
+            _unansweredQuestion
+        };
         foreach (var question in questions)
         {
             question.Category = category;
@@ -185,7 +204,8 @@ public class ChallengeSetProgressTests : IAsyncLifetime
 
         var sets = new ChallengeSetRepository(_db);
         await sets.AddAsync(_completedSet, new[] { _secondCorrectQuestion.Id, _sharedQuestion.Id });
-        await sets.AddAsync(_partialSet, new[] { _sharedQuestion.Id, _incorrectQuestion.Id, _unansweredQuestion.Id });
+        await sets.AddAsync(_partialSet, new[]
+        { _sharedQuestion.Id, _incorrectQuestion.Id, _unansweredQuestion.Id });
         await sets.AddAsync(_unansweredSet, new[] { _unansweredQuestion.Id });
         await sets.AddAsync(_emptySet, Array.Empty<int>());
 

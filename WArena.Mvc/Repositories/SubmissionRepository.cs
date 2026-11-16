@@ -11,7 +11,8 @@ public class SubmissionRepository(ApplicationDbContext context) : ISubmissionRep
 
     public async Task<HashSet<int>> GetCompletedQuestionIdsAsync(string userId, IReadOnlyCollection<int> questionIds)
     {
-        if (questionIds.Count == 0) return new HashSet<int>();
+        if (questionIds.Count == 0)
+            return new HashSet<int>();
 
         return (await context.Submissions
             .Where(x => x.UserId == userId && x.IsCorrect && questionIds.Contains(x.QuestionId))
@@ -29,7 +30,10 @@ public class SubmissionRepository(ApplicationDbContext context) : ISubmissionRep
 
     public async Task<IReadOnlyList<Submission>> GetForUserAsync(string userId) =>
         await context.Submissions.Include(x => x.Question).ThenInclude(x => x!.Category)
-            .Where(x => x.UserId == userId).OrderByDescending(x => x.SubmittedAtUtc).AsNoTracking().ToListAsync();
+            .Where(x => x.UserId == userId)
+            .OrderByDescending(x => x.SubmittedAtUtc)
+            .AsNoTracking()
+            .ToListAsync();
 
     public Task<int> CountCorrectForUserAsync(string userId) =>
         context.Submissions.CountAsync(x => x.UserId == userId && x.IsCorrect);
@@ -38,6 +42,7 @@ public class SubmissionRepository(ApplicationDbContext context) : ISubmissionRep
         context.Submissions.CountAsync(x => x.UserId == userId);
 
     public Task<int> CountCompletedQuestionsForSetAsync(string userId, int challengeSetId) =>
-        context.Submissions.Where(x => x.UserId == userId && x.IsCorrect && x.Question!.ChallengeSetQuestions.Any(y => y.ChallengeSetId == challengeSetId))
+        context.Submissions
+            .Where(x => x.UserId == userId && x.IsCorrect && x.Question!.ChallengeSetQuestions.Any(y => y.ChallengeSetId == challengeSetId))
             .Select(x => x.QuestionId).Distinct().CountAsync();
 }

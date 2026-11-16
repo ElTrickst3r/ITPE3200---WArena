@@ -6,20 +6,25 @@ namespace WArena.Mvc.Repositories;
 
 public class ChallengeSetRepository(ApplicationDbContext context) : IChallengeSetRepository
 {
-    public async Task<IReadOnlyList<ChallengeSet>> SearchAsync(ChallengeSetSearchCriteria criteria, bool includeUnpublished)
+    public async Task<IReadOnlyList<ChallengeSet>> SearchAsync(
+        ChallengeSetSearchCriteria criteria,
+        bool includeUnpublished)
     {
         var query = context.ChallengeSets
             .Include(x => x.ChallengeSetQuestions).ThenInclude(x => x.Question).ThenInclude(x => x!.Category)
             .AsNoTracking().AsQueryable();
 
-        if (!includeUnpublished) query = query.Where(x => x.IsPublished);
+        if (!includeUnpublished)
+            query = query.Where(x => x.IsPublished);
         if (!string.IsNullOrWhiteSpace(criteria.Search))
         {
             var term = criteria.Search.Trim();
             query = query.Where(x => x.Name.Contains(term) || (x.Description != null && x.Description.Contains(term)));
         }
-        if (criteria.MinQuestions.HasValue) query = query.Where(x => x.ChallengeSetQuestions.Count >= criteria.MinQuestions.Value);
-        if (criteria.IsPublished.HasValue) query = query.Where(x => x.IsPublished == criteria.IsPublished.Value);
+        if (criteria.MinQuestions.HasValue)
+            query = query.Where(x => x.ChallengeSetQuestions.Count >= criteria.MinQuestions.Value);
+        if (criteria.IsPublished.HasValue)
+            query = query.Where(x => x.IsPublished == criteria.IsPublished.Value);
 
         return await query.OrderBy(x => x.Name).ToListAsync();
     }

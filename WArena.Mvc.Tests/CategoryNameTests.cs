@@ -91,19 +91,25 @@ public class CategoryNameTests : IAsyncLifetime
             new Category { Name = " div1 ", Description = "Second legacy category" }
         };
         _db.Categories.AddRange(duplicateCategories);
-        foreach (var name in new[] { "CSS", "ASP.NET Core", "JavaScript", "Web Development Concepts" })
+        foreach (var name in new[]
+        { "CSS", "ASP.NET Core", "JavaScript", "Web Development Concepts" })
             _db.Categories.Add(new Category { Name = name });
         await _db.SaveChangesAsync();
         var duplicateIds = duplicateCategories.Select(category => category.Id).ToArray();
         foreach (var category in duplicateCategories)
             _db.Questions.Add(new Question
             {
-                CategoryId = category.Id, Title = "Existing", Prompt = "Keep", CorrectAnswer = "Keep"
+                CategoryId = category.Id,
+                Title = "Existing",
+                Prompt = "Keep",
+                CorrectAnswer = "Keep"
             });
         await _db.SaveChangesAsync();
         var categoryCount = await _db.Categories.CountAsync();
         var originalCategories = await _db.Categories.Where(category => duplicateIds.Contains(category.Id))
-            .OrderBy(category => category.Id).Select(category => new { category.Id, category.Name, category.Description }).ToListAsync();
+            .OrderBy(category => category.Id)
+            .Select(category => new { category.Id, category.Name, category.Description })
+            .ToListAsync();
         var originalLinks = await _db.Questions.OrderBy(question => question.Id)
             .Select(question => new { question.Id, question.CategoryId }).ToListAsync();
 
@@ -114,9 +120,14 @@ public class CategoryNameTests : IAsyncLifetime
             _db.ChangeTracker.Clear();
 
             Assert.Equal(categoryCount + 1, await _db.Categories.CountAsync());
-            Assert.Equal(1, await _db.Categories.CountAsync(category => category.Name == "Practical Web Development"));
-            Assert.Equal(originalCategories, await _db.Categories.Where(category => duplicateIds.Contains(category.Id))
-                .OrderBy(category => category.Id).Select(category => new { category.Id, category.Name, category.Description }).ToListAsync());
+            Assert.Equal(
+                1,
+                await _db.Categories.CountAsync(category => category.Name == "Practical Web Development"));
+            Assert.Equal(originalCategories, await _db.Categories
+                .Where(category => duplicateIds.Contains(category.Id))
+                .OrderBy(category => category.Id)
+                .Select(category => new { category.Id, category.Name, category.Description })
+                .ToListAsync());
             Assert.Equal(originalLinks, await _db.Questions.OrderBy(question => question.Id)
                 .Select(question => new { question.Id, question.CategoryId }).ToListAsync());
         }

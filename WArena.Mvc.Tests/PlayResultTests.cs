@@ -155,11 +155,18 @@ public class PlayResultTests : IAsyncLifetime
         var category = new Category { Name = "HTML" };
         _question = new Question
         {
-            Category = category, Title = "First", Prompt = "Answer", CorrectAnswer = "correct", Points = 100
+            Category = category,
+            Title = "First",
+            Prompt = "Answer",
+            CorrectAnswer = "correct",
+            Points = 100
         };
         _nextQuestion = new Question
         {
-            Category = category, Title = "Next", Prompt = "Answer", CorrectAnswer = "correct"
+            Category = category,
+            Title = "Next",
+            Prompt = "Answer",
+            CorrectAnswer = "correct"
         };
         _db.Questions.AddRange(_question, _nextQuestion);
         await _db.SaveChangesAsync();

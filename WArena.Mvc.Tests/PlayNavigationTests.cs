@@ -165,7 +165,11 @@ public class PlayNavigationTests : IAsyncLifetime
         var category = new Category { Name = "HTML" };
         _questions = Enumerable.Range(1, 3).Select(number => new Question
         {
-            Category = category, Title = $"Question {number}", Prompt = "Answer", CorrectAnswer = "correct", Points = 100
+            Category = category,
+            Title = $"Question {number}",
+            Prompt = "Answer",
+            CorrectAnswer = "correct",
+            Points = 100
         }).ToArray();
         _db.Questions.AddRange(_questions);
         await _db.SaveChangesAsync();

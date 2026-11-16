@@ -119,7 +119,10 @@ public class AdminEditUserTests : IAsyncLifetime
         Assert.True((await roles.CreateAsync(new IdentityRole("Teacher"))).Succeeded);
         _user = new ApplicationUser
         {
-            UserName = "original", DisplayName = "original", Email = "user@example.com", TotalXp = 150
+            UserName = "original",
+            DisplayName = "original",
+            Email = "user@example.com",
+            TotalXp = 150
         };
         Assert.True((await _manager.CreateAsync(_user, "Original123!")).Succeeded);
         Assert.True((await _manager.AddToRoleAsync(_user, "Student")).Succeeded);

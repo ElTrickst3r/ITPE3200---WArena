@@ -35,7 +35,8 @@ public class CategoryRepository(ApplicationDbContext context) : ICategoryReposit
     public async Task<bool> DeleteAsync(int id)
     {
         var category = await context.Categories.Include(x => x.Questions).FirstOrDefaultAsync(x => x.Id == id);
-        if (category is null || category.Questions.Count > 0) return false;
+        if (category is null || category.Questions.Count > 0)
+            return false;
         context.Categories.Remove(category);
         await context.SaveChangesAsync();
         return true;
