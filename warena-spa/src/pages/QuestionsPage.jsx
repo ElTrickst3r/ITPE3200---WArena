@@ -1,15 +1,116 @@
-import { useEffect, useMemo, useState } from 'react'
-import { api } from '../services/api'
+import { useEffect, useState } from 'react'
+import { categoryService, questionService } from '../services/contentService'
+import PracticeDialog from '../components/PracticeDialog'
 
-export default function QuestionsPage(){
- const [questions,setQuestions]=useState([]),[categories,setCategories]=useState([]),[filters,setFilters]=useState({search:'',categoryId:'',difficulty:'',minPoints:'',maxPoints:''}),[selected,setSelected]=useState(null),[answer,setAnswer]=useState(''),[result,setResult]=useState(null),[error,setError]=useState('')
- async function load(){try{const p=new URLSearchParams();Object.entries(filters).forEach(([k,v])=>{if(v!=='')p.set(k,v)});const [q,c]=await Promise.all([api.get(`/api/questions?${p}`),api.get('/api/categories')]);setQuestions(q);setCategories(c)}catch(e){setError(e.message)}}
- useEffect(()=>{load()},[])
- const options=useMemo(()=>selected?.options||[],[selected])
- async function submit(e){e.preventDefault();setError('');try{const r=await api.post(`/api/progress/questions/${selected.id}/answer`,{answer});setResult(r)}catch(e){setError(e.message)}}
- function open(q){setSelected(q);setAnswer('');setResult(null)}
- return <><div className="section-title"><div><h1>Individual questions</h1><p>Pick anything from the question bank and practice it on its own.</p></div></div>
- <form className="filter-panel" onSubmit={e=>{e.preventDefault();load()}}><label>Search<input value={filters.search} onChange={e=>setFilters({...filters,search:e.target.value})} placeholder="Title or question"/></label><label>Category<select value={filters.categoryId} onChange={e=>setFilters({...filters,categoryId:e.target.value})}><option value="">All</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label>Difficulty<select value={filters.difficulty} onChange={e=>setFilters({...filters,difficulty:e.target.value})}><option value="">All</option><option>Easy</option><option>Medium</option><option>Hard</option></select></label><label>Min XP<input type="number" min="0" value={filters.minPoints} onChange={e=>setFilters({...filters,minPoints:e.target.value})}/></label><label>Max XP<input type="number" min="0" value={filters.maxPoints} onChange={e=>setFilters({...filters,maxPoints:e.target.value})}/></label><button className="primary-button">Filter</button></form>
- {error&&<div className="error-box">{error}</div>}<div className="card-grid">{questions.map(q=><article className="card" key={q.id}><div className="card-top"><span className="pill">{q.category}</span><span className={`difficulty ${q.difficulty.toLowerCase()}`}>{q.difficulty}</span></div><h3>{q.title}</h3><p>{q.prompt}</p><div className="card-meta"><span>{q.points} XP</span><span>{q.type==='MultipleChoice'?'Multiple choice':'Short answer'}</span></div><button className="primary-button" onClick={()=>open(q)}>Practice</button></article>)}</div>
- {selected&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setSelected(null)}}><div className="dialog"><button className="close" onClick={()=>setSelected(null)}>×</button><span className="pill">{selected.category}</span><h2>{selected.title}</h2><p className="question-text">{selected.prompt}</p>{result?<div className={`result-box ${result.isCorrect?'success':'failure'}`}><strong>{result.isCorrect?'Correct!':'Not quite'}</strong><span>{result.isCorrect?`+${result.pointsEarned} XP`:'0 XP'}</span><button className="secondary-button" onClick={()=>{setResult(null);setAnswer('')}}>Try again</button></div>:<form onSubmit={submit}>{selected.type==='MultipleChoice'?<div className="option-list">{options.map(o=><label className="option" key={o}><input required type="radio" name="answer" value={o} checked={answer===o} onChange={e=>setAnswer(e.target.value)}/><span>{o}</span></label>)}</div>:<label>Your answer<input required value={answer} onChange={e=>setAnswer(e.target.value)} autoFocus/></label>}<button className="primary-button">Submit answer</button></form>}</div></div>}</>
+const EMPTY_FILTERS = { search: '', categoryId: '', difficulty: '', minPoints: '', maxPoints: '' }
+
+export default function QuestionsPage() {
+  const [questions, setQuestions] = useState([])
+  const [categories, setCategories] = useState([])
+  const [filters, setFilters] = useState(EMPTY_FILTERS)
+  const [selected, setSelected] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  const update = field => e => setFilters({ ...filters, [field]: e.target.value })
+
+  async function search(activeFilters) {
+    const { minPoints, maxPoints } = activeFilters
+    if (minPoints !== '' && maxPoints !== '' && Number(minPoints) > Number(maxPoints)) {
+      setError('Min XP cannot be higher than max XP.')
+      return
+    }
+
+    setLoading(true)
+    try {
+      setQuestions(await questionService.search(activeFilters))
+      setError('')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    categoryService.getAll().then(setCategories).catch(err => setError(err.message))
+    search(EMPTY_FILTERS)
+  }, [])
+
+  const resetFilters = () => {
+    setFilters(EMPTY_FILTERS)
+    search(EMPTY_FILTERS)
+  }
+
+  return (
+    <>
+      <div className="section-title">
+        <div>
+          <h1>Individual questions</h1>
+          <p>Pick anything from the question bank and practice it on its own.</p>
+        </div>
+      </div>
+
+      <form className="filter-panel" onSubmit={e => { e.preventDefault(); search(filters) }}>
+        <label>
+          Search
+          <input value={filters.search} onChange={update('search')} placeholder="Title or question" />
+        </label>
+        <label>
+          Category
+          <select value={filters.categoryId} onChange={update('categoryId')}>
+            <option value="">All</option>
+            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </label>
+        <label>
+          Difficulty
+          <select value={filters.difficulty} onChange={update('difficulty')}>
+            <option value="">All</option>
+            <option>Easy</option>
+            <option>Medium</option>
+            <option>Hard</option>
+          </select>
+        </label>
+        <label>
+          Min XP
+          <input type="number" min="0" value={filters.minPoints} onChange={update('minPoints')} />
+        </label>
+        <label>
+          Max XP
+          <input type="number" min="0" value={filters.maxPoints} onChange={update('maxPoints')} />
+        </label>
+        <button className="primary-button">Filter</button>
+        <button type="button" className="secondary-button" onClick={resetFilters}>Reset</button>
+      </form>
+
+      {error && <div className="error-box">{error}</div>}
+
+      {loading ? (
+        <p>Loading questions…</p>
+      ) : questions.length === 0 ? (
+        <p>No questions match your filters.</p>
+      ) : (
+        <div className="card-grid">
+          {questions.map(q => (
+            <article className="card" key={q.id}>
+              <div className="card-top">
+                <span className="pill">{q.category}</span>
+                <span className={`difficulty ${q.difficulty.toLowerCase()}`}>{q.difficulty}</span>
+              </div>
+              <h3>{q.title}</h3>
+              <p>{q.prompt}</p>
+              <div className="card-meta">
+                <span>{q.points} XP</span>
+                <span>{q.type === 'MultipleChoice' ? 'Multiple choice' : 'Short answer'}</span>
+              </div>
+              <button type="button" className="primary-button" onClick={() => setSelected(q)}>Practice</button>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {selected && <PracticeDialog key={selected.id} question={selected} onClose={() => setSelected(null)} />}
+    </>
+  )
 }
