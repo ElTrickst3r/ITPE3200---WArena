@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
@@ -138,6 +138,7 @@ function Layout() {
       </Route>
       <Route element={<ProtectedRoute roles={['Admin','Teacher']} />}><Route path="/manage" element={<ManagePage />} /></Route>
       <Route element={<ProtectedRoute roles={['Admin']} />}><Route path="/users" element={<UsersPage />} /></Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes></main>
 
     <footer className="footer">WArena — Web Applications, Gamified · API + React SPA</footer>
