@@ -1,7 +1,10 @@
 @model QuestionFormViewModel
-@{ ViewData["Title"] = "Edit question"; }
+@{
+    ViewData["Title"] = "Edit question";
+}
 <partial name="_QuestionForm" model="Model" />
-@section Scripts {
+@section Scripts
+{
     <partial name="_ValidationScriptsPartial" />
     <script>
         const type = document.getElementById('questionType');

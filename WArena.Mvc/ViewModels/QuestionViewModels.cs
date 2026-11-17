@@ -24,12 +24,17 @@ public class QuestionFormViewModel
     public Difficulty Difficulty { get; set; }
 
     [Range(10, 1000)]
+    [Display(Name = "XP reward")]
     public int Points { get; set; } = 100;
 
-    [Display(Name = "Option A")] public string? OptionA { get; set; }
-    [Display(Name = "Option B")] public string? OptionB { get; set; }
-    [Display(Name = "Option C")] public string? OptionC { get; set; }
-    [Display(Name = "Option D")] public string? OptionD { get; set; }
+    [Display(Name = "Option A")]
+    public string? OptionA { get; set; }
+    [Display(Name = "Option B")]
+    public string? OptionB { get; set; }
+    [Display(Name = "Option C")]
+    public string? OptionC { get; set; }
+    [Display(Name = "Option D")]
+    public string? OptionD { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "Choose a category.")]
     [Display(Name = "Category")]
@@ -40,6 +45,7 @@ public class QuestionFormViewModel
 
 public class QuestionSearchViewModel
 {
+    public HashSet<int> CompletedQuestionIds { get; set; } = new();
     public string? Search { get; set; }
     public int? CategoryId { get; set; }
     public Difficulty? Difficulty { get; set; }
@@ -52,6 +58,7 @@ public class QuestionSearchViewModel
 public class PlayQuestionViewModel
 {
     public int QuestionId { get; set; }
+    public bool IsCompleted { get; set; }
     public int? ChallengeSetId { get; set; }
     public int QuestionIndex { get; set; }
     public int TotalQuestions { get; set; }

@@ -31,7 +31,11 @@ public class HomeController(
             model.TotalXp = user?.TotalXp ?? 0;
             model.CurrentStreak = user?.CurrentStreak ?? 0;
             model.TotalAttempts = attempts;
-            model.CompletedQuestions = history.Where(x => x.IsCorrect).Select(x => x.QuestionId).Distinct().Count();
+            model.CompletedQuestions = history
+                .Where(x => x.IsCorrect)
+                .Select(x => x.QuestionId)
+                .Distinct()
+                .Count();
             model.Accuracy = attempts == 0 ? 0 : Math.Round((double)correct / attempts * 100);
             model.RecentAchievements = (await achievements.GetForUserAsync(userId)).Take(4).ToList();
         }

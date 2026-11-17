@@ -7,7 +7,11 @@ namespace WArena.Mvc.Tests;
 public class GamificationServiceTests
 {
     private readonly GamificationService _service = new();
-    private static Question Question(int points = 100) => new() { CorrectAnswer = "Model View Controller", Points = points };
+    private static Question Question(int points = 100) => new()
+    {
+        CorrectAnswer = "Model View Controller",
+        Points = points
+    };
 
     // Positive tests
     [Fact]
@@ -57,7 +61,10 @@ public class GamificationServiceTests
     [Fact]
     public void Positive_ConsecutiveDay_IncrementsStreak()
     {
-        var streak = _service.UpdateStreak(4, new DateTime(2026, 10, 3, 18, 0, 0, DateTimeKind.Utc), new DateTime(2026, 10, 4, 8, 0, 0, DateTimeKind.Utc));
+        var streak = _service.UpdateStreak(
+            4,
+            new DateTime(2026, 10, 3, 18, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 10, 4, 8, 0, 0, DateTimeKind.Utc));
         Assert.Equal(5, streak);
     }
 
@@ -105,7 +112,10 @@ public class GamificationServiceTests
     [Fact]
     public void Negative_MissedDay_ResetsStreakToOne()
     {
-        var streak = _service.UpdateStreak(9, new DateTime(2026, 10, 1, 18, 0, 0, DateTimeKind.Utc), new DateTime(2026, 10, 4, 8, 0, 0, DateTimeKind.Utc));
+        var streak = _service.UpdateStreak(
+            9,
+            new DateTime(2026, 10, 1, 18, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 10, 4, 8, 0, 0, DateTimeKind.Utc));
         Assert.Equal(1, streak);
     }
 }

@@ -45,7 +45,8 @@ public class AdminController(
         }
 
         var user = await userManager.FindByIdAsync(id);
-        if (user is null) return NotFound();
+        if (user is null)
+            return NotFound();
         var roles = await userManager.GetRolesAsync(user);
         return View(new AdminEditUserViewModel
         {
@@ -66,11 +67,14 @@ public class AdminController(
             return RedirectToAction(nameof(Users));
         }
 
-        if (!AllowedRoles.Contains(model.Role)) ModelState.AddModelError(nameof(model.Role), "Invalid role.");
-        if (!ModelState.IsValid) return View(model);
+        if (!AllowedRoles.Contains(model.Role))
+            ModelState.AddModelError(nameof(model.Role), "Invalid role.");
+        if (!ModelState.IsValid)
+            return View(model);
 
         var user = await userManager.FindByIdAsync(model.Id);
-        if (user is null) return NotFound();
+        if (user is null)
+            return NotFound();
 
         var username = model.Username.Trim();
         var duplicate = await userManager.FindByNameAsync(username);
@@ -91,10 +95,12 @@ public class AdminController(
             }
         }
 
+        await using var transaction = await db.Database.BeginTransactionAsync();
         var nameResult = await userManager.SetUserNameAsync(user, username);
         if (!nameResult.Succeeded)
         {
-            foreach (var error in nameResult.Errors) ModelState.AddModelError(nameof(model.Username), error.Description);
+            foreach (var error in nameResult.Errors)
+                ModelState.AddModelError(nameof(model.Username), error.Description);
             return View(model);
         }
 
@@ -102,13 +108,15 @@ public class AdminController(
         var updateResult = await userManager.UpdateAsync(user);
         if (!updateResult.Succeeded)
         {
-            foreach (var error in updateResult.Errors) ModelState.AddModelError(string.Empty, error.Description);
+            foreach (var error in updateResult.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
             return View(model);
         }
 
         if (!currentRoles.Contains(model.Role))
         {
-            if (currentRoles.Count > 0) await userManager.RemoveFromRolesAsync(user, currentRoles);
+            if (currentRoles.Count > 0)
+                await userManager.RemoveFromRolesAsync(user, currentRoles);
             await userManager.AddToRoleAsync(user, model.Role);
         }
 
@@ -118,7 +126,8 @@ public class AdminController(
             var passwordResult = await userManager.ResetPasswordAsync(user, token, model.NewPassword);
             if (!passwordResult.Succeeded)
             {
-                foreach (var error in passwordResult.Errors) ModelState.AddModelError(nameof(model.NewPassword), error.Description);
+                foreach (var error in passwordResult.Errors)
+                    ModelState.AddModelError(nameof(model.NewPassword), error.Description);
                 return View(model);
             }
         }
@@ -127,6 +136,7 @@ public class AdminController(
             await userManager.UpdateSecurityStampAsync(user);
         }
 
+        await transaction.CommitAsync();
         logger.LogInformation("Admin updated user {UserId}", user.Id);
         TempData["Message"] = "User updated.";
         return RedirectToAction(nameof(Users));
@@ -142,7 +152,8 @@ public class AdminController(
         }
 
         var user = await userManager.FindByIdAsync(id);
-        if (user is null) return NotFound();
+        if (user is null)
+            return NotFound();
         return View(new DeleteUserViewModel
         {
             Id = user.Id,
@@ -162,7 +173,8 @@ public class AdminController(
         }
 
         var user = await userManager.FindByIdAsync(id);
-        if (user is null) return NotFound();
+        if (user is null)
+            return NotFound();
 
         if (await userManager.IsInRoleAsync(user, "Admin"))
         {

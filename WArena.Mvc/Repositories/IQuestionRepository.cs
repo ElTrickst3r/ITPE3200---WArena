@@ -2,7 +2,12 @@ using WArena.Mvc.Models;
 
 namespace WArena.Mvc.Repositories;
 
-public record QuestionSearchCriteria(string? Search, int? CategoryId, Difficulty? Difficulty, int? MinPoints, int? MaxPoints);
+public record QuestionSearchCriteria(
+    string? Search,
+    int? CategoryId,
+    Difficulty? Difficulty,
+    int? MinPoints,
+    int? MaxPoints);
 
 public interface IQuestionRepository
 {
