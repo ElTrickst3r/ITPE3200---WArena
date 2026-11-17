@@ -775,17 +775,7 @@ public static class DbInitializer
         }
         else
         {
-            if (!string.Equals(user.UserName, username, StringComparison.Ordinal))
-            {
-                var nameResult = await manager.SetUserNameAsync(user, username);
-                if (!nameResult.Succeeded)
-                    throw new InvalidOperationException(string.Join("; ", nameResult.Errors.Select(x => x.Description)));
-            }
-            if (user.DisplayName != username)
-            {
-                user.DisplayName = username;
-                await manager.UpdateAsync(user);
-            }
+            return;
         }
         if (!await manager.IsInRoleAsync(user, role))
             await manager.AddToRoleAsync(user, role);

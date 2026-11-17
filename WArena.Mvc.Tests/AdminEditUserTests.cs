@@ -76,6 +76,68 @@ public class AdminEditUserTests : IAsyncLifetime
         Assert.Equal(150, saved.TotalXp);
     }
 
+    [Fact]
+    public async Task Positive_Startup_PreservesExistingSeedUserAndCreatesMissingUsers()
+    {
+        Assert.True((await _manager.SetEmailAsync(_user, "teacher@warena.local")).Succeeded);
+        _user.DisplayName = "Saved display name";
+        _user.CurrentStreak = 3;
+        _user.LastActivityUtc = new DateTime(2026, 10, 4, 12, 0, 0, DateTimeKind.Utc);
+        Assert.True((await _manager.UpdateAsync(_user)).Succeeded);
+        var originalHash = _user.PasswordHash;
+        var originalStamp = _user.SecurityStamp;
+        var lastActivity = _user.LastActivityUtc;
+        var submission = new Submission
+        {
+            UserId = _user.Id,
+            Question = new Question
+            {
+                Category = new Category { Name = "Regression" },
+                Title = "Saved question",
+                Prompt = "Saved prompt",
+                CorrectAnswer = "Saved answer"
+            },
+            Answer = "Saved answer",
+            IsCorrect = true,
+            PointsEarned = 30
+        };
+        _db.Submissions.Add(submission);
+        await _db.SaveChangesAsync();
+
+        for (var startup = 0; startup < 2; startup++)
+        {
+            using var scope = _provider.CreateScope();
+            await DbInitializer.InitializeAsync(scope.ServiceProvider);
+        }
+
+        var saved = await ReloadUserAsync();
+        Assert.Equal("original", saved.UserName);
+        Assert.Equal("Saved display name", saved.DisplayName);
+        Assert.Equal(new[] { "Student" }, await _manager.GetRolesAsync(saved));
+        Assert.Equal(originalHash, saved.PasswordHash);
+        Assert.Equal(originalStamp, saved.SecurityStamp);
+        Assert.Equal(150, saved.TotalXp);
+        Assert.Equal(3, saved.CurrentStreak);
+        Assert.Equal(lastActivity, saved.LastActivityUtc);
+        var savedSubmission = await _db.Submissions.SingleAsync();
+        Assert.Equal(submission.Id, savedSubmission.Id);
+        Assert.Equal(_user.Id, savedSubmission.UserId);
+        Assert.Equal("Saved answer", savedSubmission.Answer);
+        Assert.True(savedSubmission.IsCorrect);
+        Assert.Equal(30, savedSubmission.PointsEarned);
+
+        foreach (var username in new[] { "admin", "student", "student1", "student2", "student3", "student4", "student5" })
+        {
+            var created = await _manager.FindByEmailAsync($"{username}@warena.local");
+            Assert.NotNull(created);
+            Assert.Equal(username, created.UserName);
+            Assert.Equal(username, created.DisplayName);
+            Assert.Equal(new[] { username == "admin" ? "Admin" : "Student" }, await _manager.GetRolesAsync(created));
+            Assert.True(await _manager.CheckPasswordAsync(created, username == "admin" ? "Admin123!" : "Student123!"));
+        }
+        Assert.Equal(8, await _db.Users.CountAsync());
+    }
+
     private AdminEditUserViewModel EditModel(string? password) => new()
     {
         Id = _user.Id,
