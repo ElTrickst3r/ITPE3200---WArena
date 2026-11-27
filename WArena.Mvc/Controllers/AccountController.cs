@@ -25,7 +25,8 @@ public class AccountController(
     public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
     {
         ViewData["ReturnUrl"] = returnUrl;
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid)
+            return View(model);
 
         var user = await userManager.FindByEmailAsync(model.Email);
         if (user is null)
@@ -56,7 +57,8 @@ public class AccountController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid)
+            return View(model);
 
         if (await userManager.FindByNameAsync(model.Username.Trim()) is not null)
         {
@@ -76,7 +78,8 @@ public class AccountController(
         var result = await userManager.CreateAsync(user, model.Password);
         if (!result.Succeeded)
         {
-            foreach (var error in result.Errors) ModelState.AddModelError(string.Empty, error.Description);
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
             return View(model);
         }
 
@@ -91,7 +94,8 @@ public class AccountController(
     public async Task<IActionResult> Profile()
     {
         var user = await userManager.GetUserAsync(User);
-        if (user is null) return Challenge();
+        if (user is null)
+            return Challenge();
         return View(new ProfileViewModel
         {
             Email = user.Email ?? string.Empty,
@@ -111,7 +115,8 @@ public class AccountController(
         }
 
         var user = await userManager.GetUserAsync(User);
-        if (user is null) return Challenge();
+        if (user is null)
+            return Challenge();
 
         var username = model.Username.Trim();
         var existing = await userManager.FindByNameAsync(username);
@@ -155,7 +160,8 @@ public class AccountController(
         }
 
         var user = await userManager.GetUserAsync(User);
-        if (user is null) return Challenge();
+        if (user is null)
+            return Challenge();
 
         var result = await userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
         if (!result.Succeeded)

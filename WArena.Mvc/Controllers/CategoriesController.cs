@@ -19,7 +19,8 @@ public class CategoriesController(ICategoryRepository repository, ILogger<Catego
     {
         if (!string.IsNullOrWhiteSpace(model.Name) && await repository.NameExistsAsync(model.Name))
             ModelState.AddModelError(nameof(model.Name), "A category with this name already exists.");
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid)
+            return View(model);
 
         await repository.AddAsync(new Category { Name = model.Name.Trim(), Description = model.Description?.Trim() });
         logger.LogInformation("Category {CategoryName} created", model.Name);
@@ -31,19 +32,27 @@ public class CategoriesController(ICategoryRepository repository, ILogger<Catego
     public async Task<IActionResult> Edit(int id)
     {
         var category = await repository.GetByIdAsync(id);
-        return category is null ? NotFound() : View(new CategoryFormViewModel { Id = category.Id, Name = category.Name, Description = category.Description });
+        return category is null ? NotFound() : View(new CategoryFormViewModel
+        {
+            Id = category.Id,
+            Name = category.Name,
+            Description = category.Description
+        });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, CategoryFormViewModel model)
     {
-        if (id != model.Id) return BadRequest();
+        if (id != model.Id)
+            return BadRequest();
         if (!string.IsNullOrWhiteSpace(model.Name) && await repository.NameExistsAsync(model.Name, id))
             ModelState.AddModelError(nameof(model.Name), "A category with this name already exists.");
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid)
+            return View(model);
 
         var category = await repository.GetByIdAsync(id);
-        if (category is null) return NotFound();
+        if (category is null)
+            return NotFound();
         category.Name = model.Name.Trim();
         category.Description = model.Description?.Trim();
         await repository.UpdateAsync(category);

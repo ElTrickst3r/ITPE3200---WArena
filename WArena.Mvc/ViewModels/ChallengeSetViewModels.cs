@@ -24,6 +24,7 @@ public class ChallengeSetFormViewModel
 
 public class ChallengeSetSearchViewModel
 {
+    public HashSet<int> CompletedQuestionIds { get; set; } = new();
     public string? Search { get; set; }
     public int? MinQuestions { get; set; }
     public bool? IsPublished { get; set; }
@@ -32,6 +33,7 @@ public class ChallengeSetSearchViewModel
 
 public class ChallengeSetDetailsViewModel
 {
+    public HashSet<int> CompletedQuestionIds { get; set; } = new();
     public ChallengeSet ChallengeSet { get; set; } = new();
     public int CompletedQuestions { get; set; }
     public int TotalQuestions { get; set; }

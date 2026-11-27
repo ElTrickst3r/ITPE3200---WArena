@@ -4,7 +4,9 @@ namespace WArena.Mvc.Models;
 
 public enum QuestionType
 {
+    [Display(Name = "Short answer")]
     ShortAnswer = 0,
+    [Display(Name = "Multiple choice")]
     MultipleChoice = 1
 }
 
@@ -34,10 +36,14 @@ public class Question
     [Range(10, 1000)]
     public int Points { get; set; } = 100;
 
-    [StringLength(250)] public string? OptionA { get; set; }
-    [StringLength(250)] public string? OptionB { get; set; }
-    [StringLength(250)] public string? OptionC { get; set; }
-    [StringLength(250)] public string? OptionD { get; set; }
+    [StringLength(250)]
+    public string? OptionA { get; set; }
+    [StringLength(250)]
+    public string? OptionB { get; set; }
+    [StringLength(250)]
+    public string? OptionC { get; set; }
+    [StringLength(250)]
+    public string? OptionD { get; set; }
 
     public int CategoryId { get; set; }
     public Category? Category { get; set; }
